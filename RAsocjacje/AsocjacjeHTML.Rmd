@@ -1,0 +1,82 @@
+Wyniki analizy asocjacji 
+========================================================
+
+
+
+```{r pre,echo=FALSE, warning=FALSE, message=FALSE,  results="hide",   fig.width=10, fig.height=10, cache=FALSE}
+
+# funkcja analizy asocjacji  ----------------------------------------------
+
+
+library (data.table)
+library(arules)
+library(arulesViz)
+library(reshape)
+library(ggplot2)
+library(igraph)
+library(RODBC)
+
+
+
+
+
+#zaladowanie funkcji 
+source("functions.R")
+
+#load("PRODUKTY.dat")
+#setkey(produkty.dt, MATERIAL_ID)
+#produkty.dt<-produkty.dt[!duplicated(produkty.dt)]
+
+
+
+# test --------------------------------------------------------------------
+
+
+#load("pozycje_20120708.dat") #pozycje_201307
+#pozycje<-subset(pozycje_20120708, RODZAJ_PROBY=="PROBA")
+#pozycje<-pozycje[, c("TRANSAKCJA_UNIKALNY_NR", "MATERIAL_ID", "HIERARCHIA_MATERIALOW_ID")]
+
+#probka danych 
+
+
+
+#trans_sample<-assocs_sample(pozycje, 100000)
+#save(trans_sample, file="trans_sample_20120708_100K.dat")
+#load(file="trans_sample_20130708.dat")
+#pp<-assocs_set_level(trans_sample, produkty.dt, 'PRODUKT6' )
+
+#filtering 
+#pp<-assocs_set_level(trans_sample, produkty.dt, level=  'PRODUKT6' )
+
+pp<-read_data()
+```
+
+```{r freq, echo=FALSE, warning=FALSE, message=FALSE,  results="hide",  fig.width=10, fig.height=10,cache=FALSE}
+frequencies.df<-assoc_frequency(pp)
+```
+
+```{r affinity,echo=FALSE, warning=FALSE, message=FALSE,  results="hide",   fig.width=10, fig.height=10,cache=FALSE}
+trans<-as(split(pp[,PRODUKT], pp[,ID]), "transactions")
+
+itemf<-nrow(frequencies.df)
+assoc_affinity(trans, as.character(frequencies.df[1:min(10,itemf),'PRODUKT']) )
+```
+
+```{r rules, echo=FALSE, warning=FALSE, message=FALSE,  results="hide",   fig.width=10, fig.height=10,cache=FALSE}
+rules<-assoc_rules(trans)
+rules.df<-assoc_rules_df(rules)
+assoc_visualise(rules)
+```
+
+```{r rules_map, echo=FALSE, warning=FALSE, message=FALSE,  results="hide",  fig.width=10, fig.height=10,cache=FALSE}
+assoc_heatmap(rules.df)
+```
+
+```{r rules_graph, echo=FALSE, warning=FALSE, message=FALSE,  results="hide",   fig.width=14, fig.height=14}
+assoc_graph(rules.df,frequencies.df)
+```
+
+```{r rule_list, include=TRUE,  fig.width=10, fig.height=10,cache=FALSE}
+inspect(sort(rules, by="confidence"))
+inspect(sort(rules, by="support"))
+```
